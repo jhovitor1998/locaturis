@@ -1,5 +1,4 @@
 package com.example.locaturis.repository;
-
 import com.example.locaturis.model.Hospedagem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;

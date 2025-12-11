@@ -16,12 +16,12 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    private String senha; // Em produção usaria Hash, aqui vai texto puro para facilitar
+    private String senha;
 
     private String nome;
     
     @Enumerated(EnumType.STRING)
-    private Role role; // ADMIN ou USER
+    private Role role; // ADMIN, USER
 
     private LocalDateTime createdAt = LocalDateTime.now();
 

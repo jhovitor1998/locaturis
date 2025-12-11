@@ -15,7 +15,6 @@ public class PontoController {
 
     public PontoController(PontoService service) { this.service = service; }
 
-    // Listar com Filtro Opcional de Cidade (?cidade=Paris)
     @GetMapping
     public List<PontoTuristico> listar(@RequestParam(required = false) String cidade) {
         return service.listarPontos(cidade);
@@ -27,25 +26,24 @@ public class PontoController {
         catch (Exception e) { return ResponseEntity.badRequest().body(e.getMessage()); }
     }
 
-    // Endpoint "Como Chegar"
     @GetMapping("/{id}/como-chegar")
     public ResponseEntity<?> comoChegar(@PathVariable Long id) {
         try { return ResponseEntity.ok(service.comoChegar(id)); }
         catch (Exception e) { return ResponseEntity.notFound().build(); }
     }
 
-    // Hospedagens
     @PostMapping("/{id}/hospedagens")
-    public ResponseEntity<?> addHospedagem(@PathVariable Long id, @RequestBody Hospedagem hospedagem) {
-        try { return ResponseEntity.ok(service.adicionarHospedagem(id, hospedagem)); }
-        catch (Exception e) { return ResponseEntity.badRequest().body(e.getMessage()); }
+    public ResponseEntity<?> addHospedagem(@PathVariable Long id, @RequestBody Hospedagem h) {
+        return ResponseEntity.ok(service.adicionarHospedagem(id, h));
     }
+    
+    @GetMapping("/{id}/hospedagens")
+    public List<Hospedagem> listarHospedagens(@PathVariable Long id) { return service.listarHospedagens(id); }
 
-    // Fotos e Comentários (Mesmos de antes)
     @PostMapping("/{id}/fotos")
     public ResponseEntity<?> uploadFoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try { return ResponseEntity.ok(service.salvarFoto(id, file)); }
-        catch (Exception e) { return ResponseEntity.internalServerError().body(e.getMessage()); }
+        catch (Exception e) { return ResponseEntity.badRequest().body(e.getMessage()); }
     }
     
     @GetMapping("/{id}/fotos")
@@ -59,4 +57,18 @@ public class PontoController {
 
     @GetMapping("/{id}/comentarios")
     public List<Comentario> verComentarios(@PathVariable Long id) { return service.listarComentarios(id); }
+
+    @DeleteMapping("/{id}/comentarios/{comentarioId}")
+    public ResponseEntity<?> excluirComentario(@PathVariable Long id, @PathVariable String comentarioId, @RequestParam Long usuarioId) {
+        try {
+            service.excluirComentario(comentarioId, usuarioId);
+            return ResponseEntity.ok("Excluído.");
+        } catch (Exception e) { return ResponseEntity.status(403).body(e.getMessage()); }
+    }
+
+    @PostMapping("/{id}/favoritos/{usuarioId}")
+    public ResponseEntity<?> toggleFavorito(@PathVariable Long id, @PathVariable Long usuarioId) {
+        boolean fav = service.toggleFavorito(usuarioId, id);
+        return ResponseEntity.ok(fav ? "Favoritado!" : "Removido.");
+    }
 }

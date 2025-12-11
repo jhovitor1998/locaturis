@@ -22,16 +22,17 @@ public class PontoTuristico {
     private String cidade;
     private String estado;
 
-    // --- NOVOS CAMPOS PARA "COMO CHEGAR" ---
+    // Localização
     private Double latitude;
     private Double longitude;
     private String comoChegarTexto;
 
-    // Campos de avaliação
+    // Avaliação
     private Double notaMedia = 0.0;
     private Integer totalAvaliacoes = 0;
-
-    // Relacionamento com Hospedagem
+    //foto
+    private String imagemCapa;
+    
     @OneToMany(mappedBy = "ponto", cascade = CascadeType.ALL)
     private List<Hospedagem> hospedagens;
 

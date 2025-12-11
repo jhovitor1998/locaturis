@@ -1,5 +1,4 @@
 package com.example.locaturis.repository;
-
 import com.example.locaturis.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;

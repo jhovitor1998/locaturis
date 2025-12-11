@@ -2,23 +2,20 @@ package com.example.locaturis.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Entity
-@Table(name = "hospedagens")
-public class Hospedagem {
+@Table(name = "favoritos")
+public class Favorito {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
-    private Double precoMedio;
-    private String tipo;
-    private String linkReserva;
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "ponto_id")
-    @JsonIgnore
     private PontoTuristico ponto;
 }

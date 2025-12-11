@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LocaTuris - Guia de Viagens</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+        <style>
+            body {
+                background-color: #f0f2f5;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            /* Hero com imagem de fundo escura para contraste */
+            .hero {
+                background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1000&auto=format&fit=crop');
+                background-size: cover;
+                background-position: center;
+                color: white;
+                padding: 80px 0;
+                margin-bottom: 30px;
+            }
+            .card-img-top {
+                height: 200px;
+                object-fit: cover;
+            }
+            .card {
+                transition: transform 0.2s;
+                border: none;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            }
+            .cursor-pointer {
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="#"><i class="bi bi-airplane-engines"></i> LocaTuris</a>
+
+                <div class="d-flex align-items-center">
+                    <div id="authButtons">
+                        <button class="btn btn-outline-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#modalLogin">Entrar</button>
+                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalRegistro">Cadastrar</button>
+                    </div>
+                    <div id="userArea" class="d-none text-white">
+                        Olá, <span id="userNameDisplay" class="fw-bold me-2"></span>
+                        <button class="btn btn-outline-danger btn-sm" onclick="logout()">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="hero text-center">
+            <div class="container">
+                <h1 class="display-4 fw-bold">Descubra o Mundo</h1>
+                <p class="lead">Os melhores destinos, avaliados por quem viaja.</p>
+
+                <div class="d-flex justify-content-center mt-4">
+                    <div class="input-group w-50">
+                        <input type="text" id="filtroCidade" class="form-control" placeholder="Para onde você quer ir? (Ex: Salvador)">
+                        <button class="btn btn-primary" onclick="carregarPontos()">Buscar</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-success mt-4" onclick="abrirModalCadastroPonto()">
+                    <i class="bi bi-plus-circle"></i> Cadastrar Novo Ponto
+                </button>
+            </div>
+        </div>
+
+        <div class="container mb-5">
+            <div id="listaPontos" class="row">
+                <div class="text-center text-muted">Carregando destinos incríveis...</div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalLogin" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">Login</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <form onsubmit="fazerLogin(event)">
+                            <input class="form-control mb-2" id="loginEmail" placeholder="Email" required>
+                            <input type="password" class="form-control mb-2" id="loginSenha" placeholder="Senha" required>
+                            <button class="btn btn-primary w-100">Entrar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalRegistro" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header"><h5 class="modal-title">Criar Conta</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                    <div class="modal-body">
+                        <form onsubmit="fazerRegistro(event)">
+                            <input class="form-control mb-2" id="regNome" placeholder="Nome" required>
+                            <input class="form-control mb-2" id="regEmail" placeholder="Email" required>
+                            <input type="password" class="form-control mb-2" id="regSenha" placeholder="Senha" required>
+                            <button class="btn btn-success w-100">Cadastrar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalCadastroPonto" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Novo Destino</h5>
+                        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formCadastro">
+                            <div class="mb-2"><label>Nome *</label><input type="text" id="nome" class="form-control" required></div>
+                            <div class="mb-2"><label>Descrição *</label><textarea id="descricao" class="form-control" required></textarea></div>
+                            <div class="row">
+                                <div class="col-6 mb-2"><label>Cidade *</label><input type="text" id="cidade" class="form-control" required></div>
+                                <div class="col-6 mb-2"><label>Estado</label><input type="text" id="estado" class="form-control"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2"><label>Lat</label><input type="number" step="any" id="lat" class="form-control"></div>
+                                <div class="col-6 mb-2"><label>Lon</label><input type="number" step="any" id="lon" class="form-control"></div>
+                            </div>
+                            <div class="mb-3"><label>Como Chegar</label><input type="text" id="comoChegar" class="form-control"></div>
+                            <button type="submit" class="btn btn-success w-100">Salvar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalDetalhes" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="detalhesTitulo"></h5>
+                        <button class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img id="detalhesImg" class="img-fluid rounded mb-3 w-100" style="max-height: 250px; object-fit: cover;">
+                                <p id="detalhesDesc" class="text-muted"></p>
+                                <a id="btnMaps" target="_blank" class="btn btn-outline-info w-100 mb-3"><i class="bi bi-map"></i> Ver no Google Maps</a>
+
+                                <hr>
+                                <h6>📷 Enviar Foto</h6>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="fotoInput">
+                                    <button class="btn btn-secondary" onclick="enviarFoto()">Enviar</button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <ul class="nav nav-tabs" id="myTab">
+                                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-aval">Avaliações</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-hosp">Hospedagens</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-fotos">Galeria</button></li>
+                                </ul>
+
+                                <div class="tab-content p-3 border border-top-0">
+                                    <div class="tab-pane fade show active" id="tab-aval">
+                                        <div id="listaComentarios" class="mb-3" style="max-height: 300px; overflow-y: auto;"></div>
+                                        <form onsubmit="enviarAvaliacao(event)" class="bg-light p-2 rounded">
+                                            <div class="d-flex">
+                                                <select id="avNota" class="form-select w-auto me-2">
+                                                    <option value="5">5</option>
+                                                    <option value="4">4</option>
+                                                    <option value="3">3</option>
+                                                    <option value="2">2</option>
+                                                    <option value="1">1</option>
+                                                </select>
+                                                <input id="avTexto" class="form-control" placeholder="Deixe sua opinião..." required>
+                                            </div>
+                                            <button class="btn btn-primary btn-sm mt-2">Enviar Avaliação</button>
+                                        </form>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="tab-hosp">
+                                        <form onsubmit="salvarHosp(event)" class="d-flex mb-3">
+                                            <input id="hNome" class="form-control me-2" placeholder="Nome do Hotel" required>
+                                            <input id="hPreco" class="form-control me-2" placeholder="Preço Médio" type="number">
+                                            <button class="btn btn-success">+</button>
+                                        </form>
+                                        <ul id="listaHosp" class="list-group"></ul>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="tab-fotos">
+                                        <div id="galeriaFotos" class="row g-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            const API = 'http://localhost:8080';
+            let usuarioLogado = JSON.parse(localStorage.getItem('user'));
+            let pontoAtualId = null;
+
+            // --- AUTH ---
+            if(usuarioLogado) {
+            document.getElementById('authButtons').classList.add('d-none');
+            document.getElementById('userArea').classList.remove('d-none');
+            document.getElementById('userNameDisplay').innerText = usuarioLogado.nome;
+            }
+
+            function logout() { localStorage.removeItem('user'); location.reload(); }
+
+            async function fazerLogin(e) {
+            e.preventDefault();
+            const res = await fetch(`${API}/auth/login`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({email:document.getElementById('loginEmail').value, senha:document.getElementById('loginSenha').value})
+            });
+            if(res.ok){ localStorage.setItem('user', JSON.stringify(await res.json())); location.reload(); }
+            else alert('Erro login');
+            }
+
+            async function fazerRegistro(e) {
+            e.preventDefault();
+            const res = await fetch(`${API}/auth/register`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({nome:document.getElementById('regNome').value, email:document.getElementById('regEmail').value, senha:document.getElementById('regSenha').value})
+            });
+            if(res.ok){ alert('Sucesso! Faça Login.'); bootstrap.Modal.getInstance(document.getElementById('modalRegistro')).hide(); }
+            else alert('Erro ao registrar.');
+            }
+
+            // --- PONTOS ---
+            document.addEventListener('DOMContentLoaded', carregarPontos);
+
+            function carregarPontos() {
+            const cidade = document.getElementById('filtroCidade').value;
+            let url = `${API}/pontos`;
+            if(cidade) url += `?cidade=${cidade}`;
+
+            fetch(url).then(r => r.json()).then(data => {
+            const lista = document.getElementById('listaPontos');
+            lista.innerHTML = '';
+
+            if(data.length === 0) {
+            lista.innerHTML = '<div class="alert alert-warning text-center w-100">Nenhum ponto encontrado.</div>';
+            return;
+            }
+
+            data.forEach(p => {
+            // Placeholder se não tiver foto específica
+            const imgUrl = `https://source.unsplash.com/400x300/?${p.cidade},landmark`;
+
+            lista.innerHTML += `
+            <div class="col-md-4 mb-4">
+            <div class="card h-100">
+            <div class="position-absolute top-0 end-0 p-2">
+            <span class="badge bg-warning text-dark shadow-sm">⭐ ${p.notaMedia ? p.notaMedia.toFixed(1) : '-'}</span>
+            <button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="toggleFav(${p.id})">❤️</button>
+            </div>
+            <img src="${imgUrl}" class="card-img-top" onerror="this.src='https://via.placeholder.com/400x300?text=Sem+Imagem'">
+            <div class="card-body">
+            <h5 class="card-title text-primary">${p.nome}</h5>
+            <h6 class="card-subtitle mb-2 text-muted"><i class="bi bi-geo-alt"></i> ${p.cidade} - ${p.estado || ''}</h6>
+            <p class="card-text text-truncate">${p.descricao}</p>
+            <button class="btn btn-primary w-100 mt-2" onclick="abrirDetalhes(${p.id})">Ver Detalhes</button>
+            </div>
+            </div>
+            </div>
+            `;
+            });
+            });
+            }
+
+            function abrirModalCadastroPonto() {
+            if(!usuarioLogado) return alert('Faça login para cadastrar!');
+            new bootstrap.Modal(document.getElementById('modalCadastroPonto')).show();
+            }
+
+            document.getElementById('formCadastro').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const dados = {
+            nome: document.getElementById('nome').value,
+            descricao: document.getElementById('descricao').value,
+            cidade: document.getElementById('cidade').value,
+            estado: document.getElementById('estado').value,
+            latitude: document.getElementById('lat').value,
+            longitude: document.getElementById('lon').value,
+            comoChegarTexto: document.getElementById('comoChegar').value
+            };
+
+            fetch(`${API}/pontos`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(dados)})
+            .then(res => {
+            if(res.ok) { alert('Sucesso!'); carregarPontos(); bootstrap.Modal.getInstance(document.getElementById('modalCadastroPonto')).hide(); }
+            else res.text().then(alert);
+            });
+            });
+
+            // --- DETALHES ---
+            function abrirDetalhes(id) {
+            pontoAtualId = id;
+            // Busca info completa
+            fetch(`${API}/pontos`).then(r => r.json()).then(all => {
+            const p = all.find(x => x.id === id);
+            document.getElementById('detalhesTitulo').innerText = p.nome;
+            document.getElementById('detalhesDesc').innerText = p.descricao;
+            document.getElementById('detalhesImg').src = `https://source.unsplash.com/600x400/?${p.cidade},landmark`;
+
+            // Busca link maps
+            fetch(`${API}/pontos/${id}/como-chegar`).then(r=>r.json()).then(l => document.getElementById('btnMaps').href = l.googleMapsLink);
+
+            // Carrega abas
+            atualizarComentarios(id);
+            atualizarHosp(id);
+            atualizarFotos(id); // Carrega fotos da galeria
+
+            new bootstrap.Modal(document.getElementById('modalDetalhes')).show();
+            });
+            }
+
+            // --- COMENTÁRIOS ---
+            function atualizarComentarios(id) {
+            fetch(`${API}/pontos/${id}/comentarios`).then(r => r.json()).then(lista => {
+            const div = document.getElementById('listaComentarios');
+            div.innerHTML = '';
+            if(lista.length === 0) div.innerHTML = '<small class="text-muted">Seja o primeiro a avaliar!</small>';
+
+            lista.forEach(c => {
+            let btnDel = '';
+            // Botão de Excluir se for Dono ou Admin
+            if(usuarioLogado && (usuarioLogado.email === c.emailUsuario || usuarioLogado.role === 'ADMIN')) {
+            btnDel = `<button class="btn btn-sm text-danger ms-auto" onclick="excluirComentario('${c.id}')"><i class="bi bi-trash"></i></button>`;
+            }
+
+            div.innerHTML += `
+            <div class="card p-2 mb-2 bg-light border-0">
+            <div class="d-flex align-items-center mb-1">
+            <strong>${c.nomeUsuario}</strong>
+            <span class="text-warning ms-2 small">${'⭐'.repeat(c.nota)}</span>
+            ${btnDel}
+            </div>
+            <p class="mb-0 small">${c.texto}</p>
+            </div>
+            `;
+            });
+            });
+            }
+
+            function enviarAvaliacao(e) {
+            e.preventDefault();
+            if(!usuarioLogado) return alert('Faça login!');
+
+            const dados = {
+            nomeUsuario: usuarioLogado.nome,
+            emailUsuario: usuarioLogado.email,
+            nota: document.getElementById('avNota').value,
+            texto: document.getElementById('avTexto').value
+            };
+
+            fetch(`${API}/pontos/${pontoAtualId}/comentarios`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dados)})
+            .then(res => {
+            if(res.ok) { document.getElementById('avTexto').value=''; atualizarComentarios(pontoAtualId); }
+            else res.text().then(alert);
+            });
+            }
+
+            function excluirComentario(cid) {
+            if(confirm('Excluir?')) fetch(`${API}/pontos/${pontoAtualId}/comentarios/${cid}?usuarioId=${usuarioLogado.id}`, {method:'DELETE'})
+            .then(res => { if(res.ok) atualizarComentarios(pontoAtualId); else alert('Erro'); });
+            }
+
+            // --- FAVORITOS ---
+            function toggleFav(id) {
+            if(!usuarioLogado) return alert('Faça login!');
+            fetch(`${API}/pontos/${id}/favoritos/${usuarioLogado.id}`, {method:'POST'}).then(r=>r.text()).then(alert);
+            }
+
+            // --- FOTOS ---
+            function atualizarFotos(id) {
+            fetch(`${API}/pontos/${id}/fotos`).then(r => r.json()).then(lista => {
+            const galeria = document.getElementById('galeriaFotos');
+            galeria.innerHTML = '';
+            if(lista.length === 0) galeria.innerHTML = '<small class="text-muted">Sem fotos.</small>';
+
+            lista.forEach(f => {
+            galeria.innerHTML += `
+            <div class="col-4">
+            <img src="/uploads/${f.nomeArquivo}" class="img-fluid rounded border" style="height:100px; width:100%; object-fit:cover;">
+            </div>`;
+            });
+            });
+            }
+
+            function enviarFoto() {
+            const file = document.getElementById('fotoInput').files[0];
+            if(!file) return;
+            const fd = new FormData(); fd.append('file', file);
+            fetch(`${API}/pontos/${pontoAtualId}/fotos`, {method:'POST', body:fd}).then(r=>{ 
+            if(r.ok){ alert('Foto enviada!'); atualizarFotos(pontoAtualId); }
+            else alert('Erro ao enviar');
+            });
+            }
+
+            // --- HOSPEDAGENS ---
+            function atualizarHosp(id) {
+            fetch(`${API}/pontos/${id}/hospedagens`).then(r=>r.json()).then(lista => {
+            const ul = document.getElementById('listaHosp'); ul.innerHTML = '';
+            lista.forEach(h => ul.innerHTML += `<li class="list-group-item d-flex justify-content-between"><span>${h.nome}</span> <span class="badge bg-secondary">R$ ${h.precoMedio}</span></li>`);
+            });
+            }
+            function salvarHosp(e) {
+            e.preventDefault();
+            const dados = { nome: document.getElementById('hNome').value, precoMedio: document.getElementById('hPreco').value };
+            fetch(`${API}/pontos/${pontoAtualId}/hospedagens`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dados)})
+            .then(res => { if(res.ok){ document.getElementById('hNome').value=''; atualizarHosp(pontoAtualId); } });
+            }
+        </script>
+    </body>
+</html>
